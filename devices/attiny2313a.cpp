@@ -74,13 +74,17 @@ template <nerv::timernum T, nerv::TimerMode M>
 Timer<T, M>::Timer(nerv::Prescaler prescaler) : prescaler(prescaler) {
   if (T == 0) {
     if (M == nerv::TimerMode::Normal) {
+#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
       TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
       TCCR0B &= ~bitvalue(WGM02);
+#endif
     }
   } else if (T == 1) {
     if (M == nerv::TimerMode::Normal) {
+#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
       TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
       TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+#endif
     }
   }
 
