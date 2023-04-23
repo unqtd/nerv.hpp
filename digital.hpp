@@ -25,8 +25,16 @@ public:
 
     *ioport->ddr &= ~bitvalue(bit);
 
-    if (M == InputPinMode::PullUp)
+    switch (M) {
+    case InputPinMode::PullUp:
       *ioport->port |= bitvalue(bit);
+      break;
+    case InputPinMode::PullDown:
+#ifndef OFF_DEFAULT_INIT
+      *ioport->port &= ~bitvalue(bit);
+#endif
+      break;
+    }
 
     this->pin = ioport->pin;
     this->bit = bit;
@@ -52,6 +60,9 @@ public:
       return;
 
     *ioport->ddr |= bitvalue(bit);
+#ifndef OFF_DEFAULT_INIT
+    *ioport->port &= ~bitvalue(bit);
+#endif
 
     this->port = ioport->port;
     this->bit = bit;
