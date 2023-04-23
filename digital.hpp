@@ -44,6 +44,21 @@ public:
     // ...
     return static_cast<State>(*pin & bitvalue(bit));
   }
+
+  static void init(const pinum pin) {
+    // ...
+    const InputPin<M> input_pin(pin);
+  }
+
+  static State state(const pinum pin) {
+    auto ioport = concr::get_port(pin);
+    auto bit = concr::get_bitvalue(pin);
+
+    if (ioport == nullptr)
+      return State::Low;
+
+    return static_cast<State>(*ioport->pin & bitvalue(bit));
+  }
 };
 
 class OutputPin {
@@ -83,6 +98,24 @@ public:
       return;
 
     *port ^= bitvalue(bit);
+  }
+
+  static void init(const pinum pin) {
+    // ...
+    const OutputPin output_pin(pin);
+  }
+
+  static void write(const pinum pin, const State state) {
+    auto ioport = concr::get_port(pin);
+    auto bit = concr::get_bitvalue(pin);
+
+    if (ioport == nullptr)
+      return;
+
+    if (state == State::High)
+      *ioport->port |= bitvalue(bit);
+    else
+      *ioport->port &= ~bitvalue(bit);
   }
 };
 
