@@ -29,11 +29,11 @@ nerv::IOPort const *get_port(const PortName portname) {
 }
 
 void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
-  const uint8_t cs0 = timer == 0 ? CS00 : CS10;
-  const uint8_t cs1 = timer == 0 ? CS01 : CS11;
-  const uint8_t cs2 = timer == 0 ? CS02 : CS12;
+  const nerv::bit8value cs0 = timer == 0 ? CS00 : CS10;
+  const nerv::bit8value cs1 = timer == 0 ? CS01 : CS11;
+  const nerv::bit8value cs2 = timer == 0 ? CS02 : CS12;
 
-  volatile uint8_t *tccrb = timer == 0 ? &TCCR0B : &TCCR1B;
+  nerv::rawbyte *tccrb = timer == 0 ? &TCCR0B : &TCCR1B;
 
   switch (prescaler) {
   case nerv::Prescaler::CLK0:
@@ -68,10 +68,10 @@ nerv::IOPort const *get_port(const nerv::pinum pin) {
 }
 
 nerv::bit8value get_bitvalue(const nerv::pinum pin) {
-  static nerv::bit8value const PINS[] = {PD0, PD1, PA1, PA0, PD2, PD3,
-                                         PD4, PD5, PD6, PB0, PB1, PB2,
-                                         PB3, PB4, PB5, PB7, PA2};
-  return PINS[pin];
+  static nerv::bit8value const pins_map[] = {PD0, PD1, PA1, PA0, PD2, PD3,
+                                             PD4, PD5, PD6, PB0, PB1, PB2,
+                                             PB3, PB4, PB5, PB7, PA2};
+  return pins_map[pin];
 }
 
 // template <nerv::timernum T, nerv::TimerMode M, typename Size>
