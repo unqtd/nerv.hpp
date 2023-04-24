@@ -44,6 +44,10 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
     *tccrb &= ~(bitvalue(cs0) | bitvalue(cs2));
     *tccrb |= bitvalue(cs1);
     break;
+  case nerv::Prescaler::External:
+    *tccrb &= ~bitvalue(cs0);
+    *tccrb |= bitvalue(cs1) | bitvalue(cs2);
+    break;
   }
 }
 

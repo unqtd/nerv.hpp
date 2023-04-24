@@ -21,7 +21,7 @@ struct IOPort {
   rawbyte *pin;
 };
 
-enum class Prescaler { CLK0, CLK8 };
+enum class Prescaler { CLK0, CLK8, External };
 enum class TimerMode { Normal };
 
 } // namespace nerv
