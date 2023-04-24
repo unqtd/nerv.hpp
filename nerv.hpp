@@ -21,7 +21,7 @@ struct IOPort {
   rawbyte *pin;
 };
 
-enum class Prescaler { CLK0, CLK8, External };
+enum class Prescaler { CLK0, CLK8, ExternalOnFallingEdge };
 enum class TimerMode { Normal };
 
 } // namespace nerv
@@ -30,15 +30,16 @@ namespace concr {
 nerv::IOPort const *get_port(const nerv::pinum pin);
 nerv::bit8value get_bitvalue(const nerv::pinum pin);
 
-template <nerv::timernum T, nerv::TimerMode M> class Timer {
+template <nerv::timernum T, nerv::TimerMode M, typename Size = uint16_t>
+class Timer {
 private:
   nerv::Prescaler prescaler;
 
 public:
   Timer(nerv::Prescaler prescaler);
 
-  uint16_t value();
-  void set(const uint16_t value);
+  Size value();
+  void set(const Size value);
 
   int16_t get_frequency_divider() {
     switch (prescaler) {
