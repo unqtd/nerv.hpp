@@ -21,7 +21,7 @@ struct IOPort {
   rawbyte *pin;
 };
 
-enum class Prescaler { CLK0, CLK8, ExternalOnFallingEdge };
+enum class Prescaler { CLK0, CLK8, CLK1024, ExternalOnFallingEdge };
 // enum class TimerMode { Normal, PhaseCorrectPWM };
 
 } // namespace nerv
