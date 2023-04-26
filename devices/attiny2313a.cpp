@@ -37,6 +37,9 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
   nerv::rawbyte *tccrb = timer == 0 ? &TCCR0B : &TCCR1B;
 
   switch (prescaler) {
+  case nerv::Prescaler::NoPrescale:
+    *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2) | bitvalue(cs0));
+    break;
   case nerv::Prescaler::CLK0:
     *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2));
     *tccrb |= bitvalue(cs0);
@@ -53,6 +56,15 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
     *tccrb &= ~bitvalue(cs0);
     *tccrb |= bitvalue(cs1) | bitvalue(cs2);
     break;
+  }
+}
+
+void clear_timer(const nerv::timernum tnum) {
+  if (tnum == 1) {
+    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
+    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+  } else if (tnum == 0) {
+    // TODO: !
   }
 }
 
@@ -84,7 +96,7 @@ namespace timers {
 template <nerv::timernum T>
 NormalTimer<T>::NormalTimer(const nerv::Prescaler prescaler)
     : prescaler(prescaler) {
-#if !defined(AGGROPT_TIMER_IN_NORMAL_MODE) || !defined(AGGROPT_TIMER1_IS_ZERO)
+#if !defined(AGGROPT_TIMER_IN_NORMAL_MODE) || !defined(AGGROPT_TIMER_IS_ZERO)
   if (T == 0) {
     TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
     TCCR0B &= ~bitvalue(WGM02);
@@ -121,6 +133,15 @@ void NormalTimer<T>::set(const Size value) {
     else
       TCNT1 = value;
   }
+}
+
+template <nerv::timernum T> void NormalTimer<T>::stop() {
+  attiny2313a::init_timer_prescaler(T, nerv::Prescaler::NoPrescale);
+}
+
+template <nerv::timernum T> NormalTimer<T>::~NormalTimer() {
+  clear_timer(T);
+  stop();
 }
 
 } // namespace timers
@@ -190,6 +211,15 @@ void PhaseCorrect<T>::write(const Size value) {
       break;
     }
   }
+}
+
+template <nerv::timernum T> void PhaseCorrect<T>::stop() {
+  attiny2313a::init_timer_prescaler(T, nerv::Prescaler::NoPrescale);
+}
+
+template <nerv::timernum T> PhaseCorrect<T>::~PhaseCorrect() {
+  clear_timer(T);
+  stop();
 }
 
 } // namespace pwm

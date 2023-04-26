@@ -21,7 +21,7 @@ struct IOPort {
   rawbyte *pin;
 };
 
-enum class Prescaler { CLK0, CLK8, CLK1024, ExternalOnFallingEdge };
+enum class Prescaler { NoPrescale, CLK0, CLK8, CLK1024, ExternalOnFallingEdge };
 // enum class TimerMode { Normal, PhaseCorrectPWM };
 
 } // namespace nerv
@@ -38,10 +38,12 @@ private:
 
 public:
   NormalTimer(const nerv::Prescaler prescaler);
+  ~NormalTimer();
 
   template <typename Size> Size value();
-
   template <typename Size> void set(const Size value);
+
+  void stop();
 
   nerv::Prescaler get_prescaler() { return prescaler; }
 };
@@ -59,8 +61,11 @@ private:
 public:
   PhaseCorrect(const nerv::pinum pin, const NBits nbits,
                const nerv::Prescaler prescaler);
+  ~PhaseCorrect();
 
   template <typename Size> void write(const Size value);
+
+  void stop();
 };
 
 } // namespace pwm

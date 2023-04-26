@@ -12,6 +12,8 @@ inline int16_t get_frequency_divider(Prescaler prescaler) {
     return 1;
   case nerv::Prescaler::CLK8:
     return 8;
+  case nerv::Prescaler::CLK1024:
+    return 1024;
   default:
     return 0;
   }
