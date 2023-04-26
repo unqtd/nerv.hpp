@@ -165,10 +165,16 @@ void PhaseCorrect<T>::write(const Size value) {
   if (T == 1) {
     switch (pin) {
     case 12: // OCR1A
-      OCR1A = value;
+      if (sizeof(Size) == sizeof(uint8_t))
+        OCR1AL = value;
+      else
+        OCR1A = value;
       break;
     case 13: // OCR1B
-      OCR1B = value;
+      if (sizeof(Size) == sizeof(uint8_t))
+        OCR1BL = value;
+      else
+        OCR1B = value;
       break;
     }
   } else if (T == 0) {
