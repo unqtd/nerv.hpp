@@ -3,6 +3,7 @@
 #include <cstdint>
 #endif
 
+#include "../digital.hpp"
 #include "../nerv.hpp"
 
 #ifndef _T2313A_CPP
@@ -119,6 +120,63 @@ void NormalTimer<T>::set(const Size value) {
 }
 
 } // namespace timers
+
+namespace pwm {
+
+template <nerv::timernum T>
+PhaseCorrect<T>::PhaseCorrect(const nerv::pinum pin, const NBits nbits,
+                              const nerv::Prescaler prescaler)
+    : pin(pin) {
+  nerv::digital::OutputPin::init(pin);
+  attiny2313a::init_timer_prescaler(T, prescaler);
+
+  if (T == 0) {
+#warning "Not impl PhaseCorrect T0"
+  } else if (T == 1) {
+    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
+    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+
+    switch (pin) {
+    case 12: // OCR1A
+      TCCR1A |= bitvalue(COM1A1);
+      TCCR1A &= ~bitvalue(COM1A0);
+      break;
+    case 13: // OCR1B
+      TCCR1A |= bitvalue(COM1B1);
+      TCCR1A &= ~bitvalue(COM1B0);
+      break;
+    }
+
+    switch (nbits) {
+    case NBits::B8:
+      TCCR1A |= bitvalue(WGM10);
+      break;
+    }
+  }
+}
+
+template <nerv::timernum T>
+template <typename Size>
+void PhaseCorrect<T>::write(const Size value) {
+  if (T == 1) {
+    switch (pin) {
+    case 12: // OCR1A
+      OCR1A = value;
+      break;
+    case 13: // OCR1B
+      OCR1B = value;
+      break;
+    }
+  } else if (T == 0) {
+    switch (pin) {
+    case 11: // OCR0A
+      OCR0A = value;
+      break;
+    }
+  }
+}
+
+} // namespace pwm
 
 } // namespace concr
 

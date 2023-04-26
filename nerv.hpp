@@ -48,6 +48,23 @@ public:
 
 } // namespace timers
 
+namespace pwm {
+
+enum class NBits { B8 };
+
+template <nerv::timernum T> class PhaseCorrect {
+private:
+  const nerv::pinum pin;
+
+public:
+  PhaseCorrect(const nerv::pinum pin, const NBits nbits,
+               const nerv::Prescaler prescaler);
+
+  template <typename Size> void write(const Size value);
+};
+
+} // namespace pwm
+
 } // namespace concr
 
 #endif
