@@ -74,30 +74,27 @@ nerv::bit8value get_bitvalue(const nerv::pinum pin) {
   return pins_map[pin];
 }
 
-// template <nerv::timernum T, nerv::TimerMode M, typename Size>
-template <nerv::timernum T, nerv::TimerMode M, typename Size>
-Timer<T, M, Size>::Timer(nerv::Prescaler prescaler) : prescaler(prescaler) {
+namespace timers {
+
+template <nerv::timernum T>
+NormalTimer<T>::NormalTimer(const nerv::Prescaler prescaler)
+    : prescaler(prescaler) {
+#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
   if (T == 0) {
-    if (M == nerv::TimerMode::Normal) {
-#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
-      TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
-      TCCR0B &= ~bitvalue(WGM02);
-#endif
-    }
+    TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
+    TCCR0B &= ~bitvalue(WGM02);
   } else if (T == 1) {
-    if (M == nerv::TimerMode::Normal) {
-#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
-      TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
-      TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
-#endif
-    }
+    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
+    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
   }
+#endif
 
   attiny2313a::init_timer_prescaler(T, prescaler);
 }
 
-template <nerv::timernum T, nerv::TimerMode M, typename Size>
-Size Timer<T, M, Size>::value() {
+template <nerv::timernum T>
+template <typename Size>
+Size NormalTimer<T>::value() {
   if (T == 0) {
     return TCNT0;
   } else { // T1
@@ -108,8 +105,9 @@ Size Timer<T, M, Size>::value() {
   }
 }
 
-template <nerv::timernum T, nerv::TimerMode M, typename Size>
-void Timer<T, M, Size>::set(const Size value) {
+template <nerv::timernum T>
+template <typename Size>
+void NormalTimer<T>::set(const Size value) {
   if (T == 0) {
     TCNT0 = value;
   } else { // T1
@@ -119,6 +117,8 @@ void Timer<T, M, Size>::set(const Size value) {
       TCNT1 = value;
   }
 }
+
+} // namespace timers
 
 } // namespace concr
 

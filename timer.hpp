@@ -4,20 +4,34 @@
 #define _TIMER_HPP
 
 namespace nerv {
+namespace timers {
 
-template <nerv::timernum T, nerv::TimerMode M> class WaitTimer {
+inline int16_t get_frequency_divider(Prescaler prescaler) {
+  switch (prescaler) {
+  case nerv::Prescaler::CLK0:
+    return 1;
+  case nerv::Prescaler::CLK8:
+    return 8;
+  default:
+    return 0;
+  }
+}
+
+template <typename T, typename Size> class WaitTimer {
 private:
-  concr::Timer<T, M> timer;
+  T timer;
 
 public:
-  WaitTimer(concr::Timer<T, M> timer) : timer(timer) {}
+  WaitTimer(T timer) : timer(timer) {}
 
-  void wait(const uint16_t ticks) {
-    timer.set(0);
-    while (timer.value() <= ticks)
+  void wait(const Size ticks) {
+    timer.template set<Size>(0);
+    while (timer.template value<Size>() <= ticks)
       ;
   }
 };
+
+} // namespace timers
 
 } // namespace nerv
 

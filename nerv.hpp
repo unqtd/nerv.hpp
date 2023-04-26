@@ -22,7 +22,7 @@ struct IOPort {
 };
 
 enum class Prescaler { CLK0, CLK8, ExternalOnFallingEdge };
-enum class TimerMode { Normal };
+// enum class TimerMode { Normal, PhaseCorrectPWM };
 
 } // namespace nerv
 
@@ -30,28 +30,24 @@ namespace concr {
 nerv::IOPort const *get_port(const nerv::pinum pin);
 nerv::bit8value get_bitvalue(const nerv::pinum pin);
 
-template <nerv::timernum T, nerv::TimerMode M, typename Size = uint16_t>
-class Timer {
+namespace timers {
+
+template <nerv::timernum T> class NormalTimer {
 private:
   nerv::Prescaler prescaler;
 
 public:
-  Timer(nerv::Prescaler prescaler);
+  NormalTimer(const nerv::Prescaler prescaler);
 
-  Size value();
-  void set(const Size value);
+  template <typename Size> Size value();
 
-  int16_t get_frequency_divider() {
-    switch (prescaler) {
-    case nerv::Prescaler::CLK0:
-      return 1;
-    case nerv::Prescaler::CLK8:
-      return 8;
-    default:
-      return 0;
-    }
-  }
+  template <typename Size> void set(const Size value);
+
+  nerv::Prescaler get_prescaler() { return prescaler; }
 };
+
+} // namespace timers
+
 } // namespace concr
 
 #endif
