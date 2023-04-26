@@ -84,7 +84,7 @@ namespace timers {
 template <nerv::timernum T>
 NormalTimer<T>::NormalTimer(const nerv::Prescaler prescaler)
     : prescaler(prescaler) {
-#ifndef AGGROPT_TIMER_IN_NORMAL_MODE
+#if !defined(AGGROPT_TIMER_IN_NORMAL_MODE) || !defined(AGGROPT_TIMER1_IS_ZERO)
   if (T == 0) {
     TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
     TCCR0B &= ~bitvalue(WGM02);
@@ -137,17 +137,23 @@ PhaseCorrect<T>::PhaseCorrect(const nerv::pinum pin, const NBits nbits,
   if (T == 0) {
 #warning "Not impl PhaseCorrect T0"
   } else if (T == 1) {
+#ifndef AGGROPT_TIMER1_IS_ZERO
     TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
     TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+#endif
 
     switch (pin) {
     case 12: // OCR1A
       TCCR1A |= bitvalue(COM1A1);
+#ifndef AGGROPT_TIMER1_IS_ZERO
       TCCR1A &= ~bitvalue(COM1A0);
+#endif
       break;
     case 13: // OCR1B
       TCCR1A |= bitvalue(COM1B1);
+#ifndef AGGROPT_TIMER1_IS_ZERO
       TCCR1A &= ~bitvalue(COM1B0);
+#endif
       break;
     }
 
