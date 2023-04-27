@@ -22,7 +22,6 @@ struct IOPort {
 };
 
 enum class Prescaler { NoPrescale, CLK0, CLK8, CLK1024, ExternalOnFallingEdge };
-// enum class TimerMode { Normal, PhaseCorrectPWM };
 
 } // namespace nerv
 
@@ -32,41 +31,33 @@ nerv::bit8value get_bitvalue(const nerv::pinum pin);
 
 namespace timers {
 
-template <nerv::timernum T> class NormalTimer {
-private:
-  nerv::Prescaler prescaler;
+void init_normal_timer(const nerv::timernum tnum);
+void init_ctc_timer(const nerv::timernum tnum);
 
-public:
-  NormalTimer(const nerv::Prescaler prescaler);
-  ~NormalTimer();
+void init_prescaler(const nerv::timernum tnum, const nerv::Prescaler prescaler);
+nerv::timernum get_timernum_by_pin(const nerv::pinum pin);
 
-  template <typename Size> Size value();
-  template <typename Size> void set(const Size value);
+template <typename T>
+void set_ctc_ocr_value(const nerv::timernum tnum, const T value);
 
-  void stop();
+template <typename T> T get_timer_value(const nerv::timernum tnum);
 
-  nerv::Prescaler get_prescaler() { return prescaler; }
-};
+template <typename T>
+void set_timer_value(const nerv::timernum tnum, const T value);
+
+void clear_timer(const nerv::timernum tnum);
 
 } // namespace timers
 
 namespace pwm {
 
-enum class NBits { B8 };
+enum class Bits { B8 };
 
-template <nerv::timernum T> class PhaseCorrect {
-private:
-  const nerv::pinum pin;
+void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits);
+void init_pin_pwm(const nerv::pinum pin);
 
-public:
-  PhaseCorrect(const nerv::pinum pin, const NBits nbits,
-               const nerv::Prescaler prescaler);
-  ~PhaseCorrect();
-
-  template <typename Size> void write(const Size value);
-
-  void stop();
-};
+template <typename T>
+void set_pwm_ocr_value(const nerv::pinum pin, const T value);
 
 } // namespace pwm
 

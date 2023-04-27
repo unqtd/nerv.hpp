@@ -19,16 +19,56 @@ inline int16_t get_frequency_divider(Prescaler prescaler) {
   }
 }
 
-template <typename T, typename Size> class WaitTimer {
+template <timernum T, typename Size> class Timer {
 private:
-  T timer;
+  Prescaler prescaler;
 
 public:
-  WaitTimer(T timer) : timer(timer) {}
+  Timer(const Prescaler prescaler) : prescaler(prescaler) {
+    concr::timers::clear_timer(T);
+  }
+
+  Size value() { return concr::timers::get_timer_value<Size>(T); }
+  void set(const Size value) { concr::timers::set_timer_value(T, value); }
+
+  void stop() { concr::timers::init_prescaler(T, Prescaler::NoPrescale); }
+  void resume() { concr::timers::init_prescaler(T, prescaler); }
+
+  Prescaler get_prescaler() { return prescaler; }
+};
+
+template <timernum T, typename Size> class NormalTimer : public Timer<T, Size> {
+public:
+  NormalTimer(const Prescaler prescaler) : Timer<T, Size>(prescaler) {
+    concr::timers::init_normal_timer(T);
+    concr::timers::init_prescaler(T, prescaler);
+  }
+};
+
+template <timernum T, typename Size> class CTCTimer : public Timer<T, Size> {
+public:
+  CTCTimer(const Prescaler prescaler) : Timer<T, Size>(prescaler) {
+    concr::timers::init_ctc_timer(T);
+    concr::timers::init_prescaler(T, prescaler);
+  }
+
+  CTCTimer(const Prescaler prescaler, const Size top)
+      : CTCTimer<T, Size>(prescaler) {
+    set_top(top);
+  }
+
+  void set_top(const Size value) { concr::timers::set_ctc_ocr_value(T, value); }
+};
+
+template <timernum T, typename Size>
+class WaitTicksTimer : public NormalTimer<T, Size> {
+public:
+  WaitTicksTimer<T, Size>(const Prescaler prescaler)
+      : NormalTimer<T, Size>(prescaler) {}
 
   void wait(const Size ticks) {
-    timer.template set<Size>(0);
-    while (timer.template value<Size>() <= ticks)
+    this->set(0);
+    while (this->value() <= ticks)
       ;
   }
 };

@@ -38,33 +38,24 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
 
   switch (prescaler) {
   case nerv::Prescaler::NoPrescale:
-    *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2) | bitvalue(cs0));
+    // *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2) | bitvalue(cs0));
     break;
   case nerv::Prescaler::CLK0:
-    *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2));
+    // *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2));
     *tccrb |= bitvalue(cs0);
     break;
   case nerv::Prescaler::CLK8:
-    *tccrb &= ~(bitvalue(cs0) | bitvalue(cs2));
+    // *tccrb &= ~(bitvalue(cs0) | bitvalue(cs2));
     *tccrb |= bitvalue(cs1);
     break;
   case nerv::Prescaler::CLK1024:
-    *tccrb &= ~bitvalue(cs1);
+    // *tccrb &= ~bitvalue(cs1);
     *tccrb |= bitvalue(cs2) | bitvalue(cs0);
     break;
   case nerv::Prescaler::ExternalOnFallingEdge:
-    *tccrb &= ~bitvalue(cs0);
+    // *tccrb &= ~bitvalue(cs0);
     *tccrb |= bitvalue(cs1) | bitvalue(cs2);
     break;
-  }
-}
-
-void clear_timer(const nerv::timernum tnum) {
-  if (tnum == 1) {
-    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
-    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
-  } else if (tnum == 0) {
-    // TODO: !
   }
 }
 
@@ -93,133 +84,155 @@ nerv::bit8value get_bitvalue(const nerv::pinum pin) {
 
 namespace timers {
 
-template <nerv::timernum T>
-NormalTimer<T>::NormalTimer(const nerv::Prescaler prescaler)
-    : prescaler(prescaler) {
-#if !defined(AGGROPT_TIMER_IN_NORMAL_MODE) || !defined(AGGROPT_TIMER_IS_ZERO)
-  if (T == 0) {
-    TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
-    TCCR0B &= ~bitvalue(WGM02);
-  } else if (T == 1) {
-    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
-    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+void init_normal_timer(const nerv::timernum tnum) {
+  switch (tnum) {
+  case 0:
+    // TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
+    // TCCR0B &= ~bitvalue(WGM02);
+    break;
+  case 1:
+    // TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
+    // TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
+    break;
   }
-#endif
-
-  attiny2313a::init_timer_prescaler(T, prescaler);
 }
 
-template <nerv::timernum T>
-template <typename Size>
-Size NormalTimer<T>::value() {
-  if (T == 0) {
+void init_ctc_timer(const nerv::timernum tnum) {
+  switch (tnum) {
+  case 0:
+    TCCR0A |= bitvalue(WGM01);
+    break;
+  case 1:
+    TCCR1B |= bitvalue(WGM12);
+    break;
+  }
+}
+
+template <typename T>
+void set_ctc_ocr_value(const nerv::timernum tnum, const T value) {
+  switch (tnum) {
+  case 0:
+    OCR0A = value;
+    break;
+  case 1:
+    if (sizeof(T) == sizeof(uint8_t))
+      OCR1AL = value;
+    else
+      OCR1A = value;
+    break;
+  }
+}
+
+void init_prescaler(const nerv::timernum tnum,
+                    const nerv::Prescaler prescaler) {
+  attiny2313a::init_timer_prescaler(tnum, prescaler);
+}
+
+template <typename T> T get_timer_value(const nerv::timernum tnum) {
+  switch (tnum) {
+  case 0:
     return TCNT0;
-  } else { // T1
-    if (sizeof(Size) == sizeof(uint8_t))
+  case 1:
+    if (sizeof(T) == sizeof(uint8_t))
       return TCNT1L;
     else
       return TCNT1;
+  default:
+    return -1;
   }
 }
 
-template <nerv::timernum T>
-template <typename Size>
-void NormalTimer<T>::set(const Size value) {
-  if (T == 0) {
+nerv::timernum get_timernum_by_pin(const nerv::pinum pin) {
+  switch (pin) {
+  case 11: // OCR0A
+    return 0;
+  case 12: // OCR1A
+  case 13: // OCR1B
+    return 1;
+  default:
+    return -1;
+  }
+}
+
+template <typename T>
+void set_timer_value(const nerv::timernum tnum, const T value) {
+  switch (tnum) {
+  case 0:
     TCNT0 = value;
-  } else { // T1
-    if (sizeof(Size) == sizeof(uint8_t))
+    break;
+  case 1:
+    if (sizeof(T) == sizeof(uint8_t))
       TCNT1L = value;
     else
       TCNT1 = value;
+    break;
   }
 }
 
-template <nerv::timernum T> void NormalTimer<T>::stop() {
-  attiny2313a::init_timer_prescaler(T, nerv::Prescaler::NoPrescale);
-}
-
-template <nerv::timernum T> NormalTimer<T>::~NormalTimer() {
-  clear_timer(T);
-  stop();
+void clear_timer(const nerv::timernum tnum) {
+  switch (tnum) {
+  case 0:
+    TCCR0A = 0;
+    TCCR0B = 0;
+    break;
+  case 1:
+    TCCR1A = 0;
+    TCCR1B = 0;
+    break;
+  }
 }
 
 } // namespace timers
 
 namespace pwm {
 
-template <nerv::timernum T>
-PhaseCorrect<T>::PhaseCorrect(const nerv::pinum pin, const NBits nbits,
-                              const nerv::Prescaler prescaler)
-    : pin(pin) {
-  nerv::digital::OutputPin::init(pin);
-  attiny2313a::init_timer_prescaler(T, prescaler);
-
-  if (T == 0) {
-#warning "Not impl PhaseCorrect T0"
-  } else if (T == 1) {
-#ifndef AGGROPT_TIMER1_IS_ZERO
-    TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
-    TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
-#endif
-
-    switch (pin) {
-    case 12: // OCR1A
-      TCCR1A |= bitvalue(COM1A1);
-#ifndef AGGROPT_TIMER1_IS_ZERO
-      TCCR1A &= ~bitvalue(COM1A0);
-#endif
-      break;
-    case 13: // OCR1B
-      TCCR1A |= bitvalue(COM1B1);
-#ifndef AGGROPT_TIMER1_IS_ZERO
-      TCCR1A &= ~bitvalue(COM1B0);
-#endif
+void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits) {
+  if (tnum == 0) {
+    switch (bits) {
+    case Bits::B8:
       break;
     }
-
-    switch (nbits) {
-    case NBits::B8:
+  } else if (tnum == 1) {
+    switch (bits) {
+    case Bits::B8:
       TCCR1A |= bitvalue(WGM10);
       break;
     }
   }
 }
 
-template <nerv::timernum T>
-template <typename Size>
-void PhaseCorrect<T>::write(const Size value) {
-  if (T == 1) {
-    switch (pin) {
-    case 12: // OCR1A
-      if (sizeof(Size) == sizeof(uint8_t))
-        OCR1AL = value;
-      else
-        OCR1A = value;
-      break;
-    case 13: // OCR1B
-      if (sizeof(Size) == sizeof(uint8_t))
-        OCR1BL = value;
-      else
-        OCR1B = value;
-      break;
-    }
-  } else if (T == 0) {
-    switch (pin) {
-    case 11: // OCR0A
-      OCR0A = value;
-      break;
-    }
+void init_pin_pwm(const nerv::pinum pin) {
+  switch (pin) {
+  case 12: // OCR1A
+    TCCR1A |= bitvalue(COM1A1);
+    // TCCR1A &= ~bitvalue(COM1A0);
+    break;
+  case 13: // OCR1B
+    TCCR1A |= bitvalue(COM1B1);
+    // TCCR1A &= ~bitvalue(COM1B0);
+    break;
   }
 }
 
-template <nerv::timernum T> void PhaseCorrect<T>::stop() {
-  attiny2313a::init_timer_prescaler(T, nerv::Prescaler::NoPrescale);
-}
-
-template <nerv::timernum T> PhaseCorrect<T>::~PhaseCorrect() {
-  clear_timer(T);
-  stop();
+template <typename T>
+void set_pwm_ocr_value(const nerv::pinum pin, const T value) {
+  switch (pin) {
+  case 11: // OCR0A
+    OCR0A = value;
+    break;
+  case 12: // OCR1A
+    if (sizeof(T) == sizeof(uint8_t))
+      OCR1AL = value;
+    else
+      OCR1A = value;
+    break;
+  case 13: // OCR1B
+    if (sizeof(T) == sizeof(uint8_t))
+      OCR1BL = value;
+    else
+      OCR1B = value;
+    break;
+  }
 }
 
 } // namespace pwm
