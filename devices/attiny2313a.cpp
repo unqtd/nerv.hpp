@@ -38,6 +38,7 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
 
   switch (prescaler) {
   case nerv::Prescaler::NoPrescale:
+    *tccrb &= ~(bitvalue(cs0) | bitvalue(cs1) | bitvalue(cs2));
     break;
   case nerv::Prescaler::CLK0:
     *tccrb |= bitvalue(cs0);
