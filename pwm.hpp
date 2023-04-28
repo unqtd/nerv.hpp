@@ -21,9 +21,6 @@ public:
       const concr::pwm::Bits bits)
       : tnum(concr::timers::get_timernum_by_pin(pin)), pin(pin),
         prescaler(prescaler) {
-    if (tnum == TIMERNUM_UNDEF)
-      return;
-
     concr::timers::clear_timer(tnum);
 
     switch (M) {
@@ -44,26 +41,13 @@ public:
                           ? concr::pwm::Bits::B8
                           : concr::pwm::Bits::BMAX)) {}
 
-  void write(const Size value) {
-    if (tnum == TIMERNUM_UNDEF)
-      return;
-
-    concr::pwm::set_pwm_ocr_value(pin, value);
-  }
+  void write(const Size value) { concr::pwm::set_pwm_ocr_value(pin, value); }
 
   void stop() {
-    if (tnum == TIMERNUM_UNDEF)
-      return;
-
     concr::timers::init_prescaler(tnum, nerv::Prescaler::NoPrescale);
   }
 
-  void resume() {
-    if (tnum == TIMERNUM_UNDEF)
-      return;
-
-    concr::timers::init_prescaler(tnum, prescaler);
-  }
+  void resume() { concr::timers::init_prescaler(tnum, prescaler); }
 };
 
 } // namespace pwm
