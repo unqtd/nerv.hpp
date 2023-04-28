@@ -9,7 +9,7 @@ namespace pwm {
 
 enum class Mode { Fast, PhaseCorrect };
 
-template <Mode M, typename Size> class PWM {
+template <Mode M, typename Size = uint8_t> class PWM {
 private:
   const nerv::timernum tnum;
   const nerv::pinum pin;

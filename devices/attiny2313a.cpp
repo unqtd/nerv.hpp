@@ -38,22 +38,17 @@ void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
 
   switch (prescaler) {
   case nerv::Prescaler::NoPrescale:
-    // *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2) | bitvalue(cs0));
     break;
   case nerv::Prescaler::CLK0:
-    // *tccrb &= ~(bitvalue(cs1) | bitvalue(cs2));
     *tccrb |= bitvalue(cs0);
     break;
   case nerv::Prescaler::CLK8:
-    // *tccrb &= ~(bitvalue(cs0) | bitvalue(cs2));
     *tccrb |= bitvalue(cs1);
     break;
   case nerv::Prescaler::CLK1024:
-    // *tccrb &= ~bitvalue(cs1);
     *tccrb |= bitvalue(cs2) | bitvalue(cs0);
     break;
   case nerv::Prescaler::ExternalOnFallingEdge:
-    // *tccrb &= ~bitvalue(cs0);
     *tccrb |= bitvalue(cs1) | bitvalue(cs2);
     break;
   }
@@ -87,12 +82,8 @@ namespace timers {
 void init_normal_timer(const nerv::timernum tnum) {
   switch (tnum) {
   case 0:
-    // TCCR0A &= ~(bitvalue(WGM00) | bitvalue(WGM01));
-    // TCCR0B &= ~bitvalue(WGM02);
     break;
   case 1:
-    // TCCR1A &= ~(bitvalue(WGM11) | bitvalue(WGM10));
-    // TCCR1B &= ~(bitvalue(WGM12) | bitvalue(WGM13));
     break;
   }
 }
@@ -189,15 +180,16 @@ namespace pwm {
 nerv::bit8value get_mask_phase_correct_pwm(const nerv::timernum tnum,
                                            const Bits bits) {
   if (tnum == 0) {
-    switch (bits) {
-    case Bits::B8:
-      // TODO: impl!
-      break;
-    }
+    return bitvalue(WGM00);
   } else if (tnum == 1) {
     switch (bits) {
     case Bits::B8:
       return bitvalue(WGM10);
+    case Bits::B9:
+      return bitvalue(WGM11);
+    case Bits::B10:
+    case Bits::BMAX:
+      return bitvalue(WGM11) | bitvalue(WGM10);
     }
   }
 
@@ -206,12 +198,14 @@ nerv::bit8value get_mask_phase_correct_pwm(const nerv::timernum tnum,
 
 nerv::bit8value get_mask_pin_pwm(const nerv::pinum pin) {
   switch (pin) {
+  case 7: // OCA0B
+    return bitvalue(COM0B1);
+  case 11: // OCA0A
+    return bitvalue(COM0A1);
   case 12: // OCR1A
     return bitvalue(COM1A1);
   case 13: // OCR1B
-    // TCCR1A |= bitvalue(COM1B1);
     return bitvalue(COM1B1);
-    break;
   default:
     return 0;
   }
