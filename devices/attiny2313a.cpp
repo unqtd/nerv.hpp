@@ -1,6 +1,5 @@
 #ifndef __AVR_ATtiny2313A__
 #define __AVR_ATtiny2313A__
-#include <cstdint>
 #endif
 
 #include "../digital.hpp"
@@ -29,29 +28,37 @@ nerv::IOPort const *get_port(const PortName portname) {
   }
 }
 
-void init_timer_prescaler(nerv::timernum timer, nerv::Prescaler prescaler) {
-  const nerv::bit8value cs0 = timer == 0 ? CS00 : CS10;
-  const nerv::bit8value cs1 = timer == 0 ? CS01 : CS11;
-  const nerv::bit8value cs2 = timer == 0 ? CS02 : CS12;
-
-  nerv::rawbyte *tccrb = timer == 0 ? &TCCR0B : &TCCR1B;
+nerv::bit8value get_mask_timer_prescaler(const nerv::timernum tnum,
+                                         const nerv::Prescaler prescaler) {
+  const nerv::bit8value cs0 = tnum == 0 ? CS00 : CS10;
+  const nerv::bit8value cs1 = tnum == 0 ? CS01 : CS11;
+  const nerv::bit8value cs2 = tnum == 0 ? CS02 : CS12;
 
   switch (prescaler) {
-  case nerv::Prescaler::NoPrescale:
-    *tccrb &= ~(bitvalue(cs0) | bitvalue(cs1) | bitvalue(cs2));
-    break;
   case nerv::Prescaler::CLK0:
-    *tccrb |= bitvalue(cs0);
-    break;
+    return bitvalue(cs0);
   case nerv::Prescaler::CLK8:
-    *tccrb |= bitvalue(cs1);
-    break;
+    return bitvalue(cs1);
   case nerv::Prescaler::CLK1024:
-    *tccrb |= bitvalue(cs2) | bitvalue(cs0);
-    break;
+    return bitvalue(cs2) | bitvalue(cs0);
   case nerv::Prescaler::ExternalOnFallingEdge:
-    *tccrb |= bitvalue(cs1) | bitvalue(cs2);
-    break;
+    return bitvalue(cs1) | bitvalue(cs2);
+  default:
+    return 0;
+  }
+}
+
+void init_timer_prescaler(nerv::timernum tnum, nerv::Prescaler prescaler) {
+  nerv::rawbyte *tccrb = tnum == 0 ? &TCCR0B : &TCCR1B;
+
+  if (prescaler == nerv::Prescaler::NoPrescale) {
+    const nerv::bit8value cs0 = tnum == 0 ? CS00 : CS10;
+    const nerv::bit8value cs1 = tnum == 0 ? CS01 : CS11;
+    const nerv::bit8value cs2 = tnum == 0 ? CS02 : CS12;
+
+    *tccrb &= ~(bitvalue(cs0) | bitvalue(cs1) | bitvalue(cs2));
+  } else {
+    *tccrb |= get_mask_timer_prescaler(tnum, prescaler);
   }
 }
 
@@ -212,18 +219,30 @@ nerv::bit8value get_mask_pin_pwm(const nerv::pinum pin) {
   }
 }
 
-void init_phase_correct_pwm_on_pin(const nerv::timernum tnum, const Bits bits,
-                                   const nerv::pinum pin) {
-  const nerv::bit8value mask_tccr =
+void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits,
+                            const nerv::pinum pin,
+                            const nerv::Prescaler prescaler) {
+  const nerv::bit8value mask_tccra =
       get_mask_pin_pwm(pin) | get_mask_phase_correct_pwm(tnum, bits);
 
   switch (tnum) {
   case 0:
-    TCCR0A = mask_tccr;
+    TCCR0A = mask_tccra;
     break;
   case 1:
-    TCCR1A = mask_tccr;
+    TCCR1A = mask_tccra;
     break;
+  }
+
+  if (prescaler == nerv::Prescaler::NoPrescale)
+    attiny2313a::init_timer_prescaler(tnum, prescaler);
+  else {
+    const nerv::bit8value mask = get_mask_timer_prescaler(tnum, prescaler);
+
+    if (tnum == 0)
+      TCCR0B = mask;
+    else if (tnum == 1)
+      TCCR1B = mask;
   }
 }
 

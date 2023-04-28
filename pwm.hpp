@@ -26,13 +26,11 @@ public:
     switch (M) {
     case Mode::Fast:
     case Mode::PhaseCorrect:
-      concr::pwm::init_phase_correct_pwm_on_pin(tnum, bits, pin);
+      concr::pwm::init_phase_correct_pwm(tnum, bits, pin, prescaler);
       break;
     }
 
     digital::OutputPin::init(pin);
-
-    concr::timers::init_prescaler(tnum, prescaler);
   }
 
   PWM(const nerv::pinum pin, const nerv::Prescaler prescaler)

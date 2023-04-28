@@ -55,8 +55,9 @@ namespace pwm {
 
 enum class Bits { B8, B9, B10, BMAX };
 
-void init_phase_correct_pwm_on_pin(const nerv::timernum tnum, const Bits bits,
-                                   const nerv::pinum pin);
+void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits,
+                            const nerv::pinum pin,
+                            const nerv::Prescaler prescaler);
 
 template <typename T>
 void set_pwm_ocr_value(const nerv::pinum pin, const T value);
