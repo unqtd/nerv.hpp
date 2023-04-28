@@ -7,6 +7,8 @@
 #define bitvalue(X) _BV(X)
 #define loop while (true)
 
+#define TIMERNUM_UNDEF 0xff
+
 namespace nerv {
 
 using bit8value = uint8_t;
@@ -51,10 +53,10 @@ void clear_timer(const nerv::timernum tnum);
 
 namespace pwm {
 
-enum class Bits { B8 };
+enum class Bits { B8, B9, B10, BMAX };
 
-void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits);
-void init_pin_pwm(const nerv::pinum pin);
+void init_phase_correct_pwm_on_pin(const nerv::timernum tnum, const Bits bits,
+                                   const nerv::pinum pin);
 
 template <typename T>
 void set_pwm_ocr_value(const nerv::pinum pin, const T value);

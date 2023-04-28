@@ -150,7 +150,7 @@ nerv::timernum get_timernum_by_pin(const nerv::pinum pin) {
   case 13: // OCR1B
     return 1;
   default:
-    return -1;
+    return TIMERNUM_UNDEF;
   }
 }
 
@@ -186,30 +186,48 @@ void clear_timer(const nerv::timernum tnum) {
 
 namespace pwm {
 
-void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits) {
+nerv::bit8value get_mask_phase_correct_pwm(const nerv::timernum tnum,
+                                           const Bits bits) {
   if (tnum == 0) {
     switch (bits) {
     case Bits::B8:
+      // TODO: impl!
       break;
     }
   } else if (tnum == 1) {
     switch (bits) {
     case Bits::B8:
-      TCCR1A |= bitvalue(WGM10);
-      break;
+      return bitvalue(WGM10);
     }
+  }
+
+  return 0;
+}
+
+nerv::bit8value get_mask_pin_pwm(const nerv::pinum pin) {
+  switch (pin) {
+  case 12: // OCR1A
+    return bitvalue(COM1A1);
+  case 13: // OCR1B
+    // TCCR1A |= bitvalue(COM1B1);
+    return bitvalue(COM1B1);
+    break;
+  default:
+    return 0;
   }
 }
 
-void init_pin_pwm(const nerv::pinum pin) {
-  switch (pin) {
-  case 12: // OCR1A
-    TCCR1A |= bitvalue(COM1A1);
-    // TCCR1A &= ~bitvalue(COM1A0);
+void init_phase_correct_pwm_on_pin(const nerv::timernum tnum, const Bits bits,
+                                   const nerv::pinum pin) {
+  const nerv::bit8value mask_tccr =
+      get_mask_pin_pwm(pin) | get_mask_phase_correct_pwm(tnum, bits);
+
+  switch (tnum) {
+  case 0:
+    TCCR0A = mask_tccr;
     break;
-  case 13: // OCR1B
-    TCCR1A |= bitvalue(COM1B1);
-    // TCCR1A &= ~bitvalue(COM1B0);
+  case 1:
+    TCCR1A = mask_tccr;
     break;
   }
 }

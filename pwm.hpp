@@ -17,31 +17,53 @@ private:
   nerv::Prescaler prescaler;
 
 public:
-  PWM(const nerv::pinum pin, const nerv::Prescaler prescaler)
+  PWM(const nerv::pinum pin, const nerv::Prescaler prescaler,
+      const concr::pwm::Bits bits)
       : tnum(concr::timers::get_timernum_by_pin(pin)), pin(pin),
         prescaler(prescaler) {
+    if (tnum == TIMERNUM_UNDEF)
+      return;
+
     concr::timers::clear_timer(tnum);
 
     switch (M) {
     case Mode::Fast:
     case Mode::PhaseCorrect:
-      concr::pwm::init_phase_correct_pwm(tnum, concr::pwm::Bits::B8);
+      concr::pwm::init_phase_correct_pwm_on_pin(tnum, bits, pin);
       break;
     }
 
     digital::OutputPin::init(pin);
 
-    concr::pwm::init_pin_pwm(pin);
     concr::timers::init_prescaler(tnum, prescaler);
   }
 
-  void write(const Size value) { concr::pwm::set_pwm_ocr_value(pin, value); }
+  PWM(const nerv::pinum pin, const nerv::Prescaler prescaler)
+      : PWM<M, Size>(pin, prescaler,
+                     (sizeof(Size) == sizeof(uint8_t)
+                          ? concr::pwm::Bits::B8
+                          : concr::pwm::Bits::BMAX)) {}
+
+  void write(const Size value) {
+    if (tnum == TIMERNUM_UNDEF)
+      return;
+
+    concr::pwm::set_pwm_ocr_value(pin, value);
+  }
 
   void stop() {
+    if (tnum == TIMERNUM_UNDEF)
+      return;
+
     concr::timers::init_prescaler(tnum, nerv::Prescaler::NoPrescale);
   }
 
-  void resume() { concr::timers::init_prescaler(tnum, prescaler); }
+  void resume() {
+    if (tnum == TIMERNUM_UNDEF)
+      return;
+
+    concr::timers::init_prescaler(tnum, prescaler);
+  }
 };
 
 } // namespace pwm
