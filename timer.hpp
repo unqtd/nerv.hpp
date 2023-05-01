@@ -60,15 +60,16 @@ public:
   void set_top(const Size value) { concr::timers::set_ctc_ocr_value(T, value); }
 };
 
-template <timernum T, typename Size>
-class WaitTicksTimer : public NormalTimer<T, Size> {
+template <timernum T, typename Size> class WaitTicksTimer {
+private:
+  Timer<T, Size> timer;
+
 public:
-  WaitTicksTimer<T, Size>(const Prescaler prescaler)
-      : NormalTimer<T, Size>(prescaler) {}
+  WaitTicksTimer(Timer<T, Size> timer) : timer(timer) {}
 
   void wait(const Size ticks) {
-    this->set(0);
-    while (this->value() <= ticks)
+    timer.set(0);
+    while (timer.value() <= ticks)
       ;
   }
 };
