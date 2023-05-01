@@ -11,12 +11,18 @@
 
 namespace nerv {
 
+/// @brief Single-byte bitmask. 
 using bit8value = uint8_t;
+
 using rawbyte = volatile uint8_t;
 
+/// @brief Arduino-compatible pin type. 
 using pinum = uint8_t;
+
+/// @brief  Timer number.
 using timernum = uint8_t;
 
+/// @brief Representation of AVR I/O port.  
 struct IOPort {
   rawbyte *ddr;
   rawbyte *port;
@@ -27,6 +33,7 @@ enum class Prescaler { NoPrescale, CLK0, CLK8, CLK1024, ExternalOnFallingEdge };
 
 } // namespace nerv
 
+/// @brief The namespace contains a unified interface for accessing a specific microcontroller.
 namespace concr {
 nerv::IOPort const *get_port(const nerv::pinum pin);
 nerv::bit8value get_bitvalue(const nerv::pinum pin);
@@ -53,6 +60,7 @@ void clear_timer(const nerv::timernum tnum);
 
 namespace pwm {
 
+/// @brief N-bits mode PWM.
 enum class Bits { B8, B9, B10, BMAX };
 
 void init_phase_correct_pwm(const nerv::timernum tnum, const Bits bits,

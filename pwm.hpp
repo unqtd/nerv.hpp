@@ -25,6 +25,7 @@ public:
 
     switch (M) {
     case Mode::Fast:
+      // TODO!
     case Mode::PhaseCorrect:
       concr::pwm::init_phase_correct_pwm(tnum, bits, pin, prescaler);
       break;
