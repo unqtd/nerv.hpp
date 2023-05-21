@@ -9,16 +9,24 @@
 
 ## Get started 
 
-```console
-$ git clone --depth=1 https://codeberg.org/unqtd/nerv.hpp.git vendor/nerv
-```
+<!-- Библиотека не предполагается в качестве единицы компиляции. Также, к сожалению, разделения на интерфейс  -->
+<!-- и имплантацию нету, так как мне не нужно было, но возможно появиться в будущем. -->
 
-Dependencies:
-* avr-libc
-* C++11
+Для работы HAL'а требуется установленная avr-libc и поддержка C++11.
 
-Библиотека не предполагается в качестве единицы компиляции. Также, к сожалению, разделения на интерфейс 
-и имплантацию нету, так как мне не нужно было, но возможно появиться в будущем.
+Методы установки
+- Ручная установка
+    ```console
+    $ git clone --depth=1 https://codeberg.org/unqtd/nerv.hpp.git vendor/nerv
+    ```
+- [buildavr](https://github.com/unqtd/buildavr)
+    ```yaml
+    dependencies: 
+      - name: nerv
+        git: https://codeberg.org/unqtd/nerv.hpp.git
+    ```
+
+Смотрите [примеры использования](https://github.com/unqtd/homework/tree/main/%D0%9C%D0%9F%D0%A1).
 
 ## List of supported chips
 
@@ -26,11 +34,13 @@ Dependencies:
 | :-------------: |
 |  `attiny2313a`  |
 
-## Documentation
+## Design
 
-Для пользователя:
-* [Examples](https://codeberg.org/unqtd/homework/src/branch/main/%D0%9C%D0%9F%D0%A1)
-* Handbook
+<!-- ## Documentation -->
+
+<!-- Для пользователя: -->
+<!-- * [Examples](https://codeberg.org/unqtd/homework/src/branch/main/%D0%9C%D0%9F%D0%A1) -->
+<!-- * Handbook -->
 
 <!-- Для разработчика: -->
 <!-- * Handbook -->
